@@ -11,7 +11,7 @@ function h = densityalt(rho,varargin)
 %     outputUnits    - String for units of output H, either meters or feet.
 %                      [{SI}|m|meters  |  US|ft|feet]
 %     atmosphereFunc - String determining atmosphere function to be used.
-%                      [{atmos}|stdatmo|tropos|atmosisa|atmoscoesa|atmosnonstd]
+%                      [{atmos}|tropos|atmosisa|atmoscoesa|atmosnonstd]
 %     atmosphereArgs - Cell array of additional arguments to pass to 
 %                      atmosphereFunction after the density input (e.g. for non-
 %                      standard atmospheres).
@@ -55,8 +55,7 @@ function h = densityalt(rho,varargin)
 % 
 %   See also ATMOSISA, ATMOSNONSTD, ATMOSCOESA, INTERP1, FZERO, 
 %     BISECTION - http://www.mathworks.com/matlabcentral/fileexchange/28150,
-%     ATMOS     - ,
-%     STDATMO   - http://www.mathworks.com/matlabcentral/fileexchange/28135,
+%     ATMOS     - http://www.mathworks.com/matlabcentral/fileexchange/28135,
 %     U, UNITS  - http://www.mathworks.com/matlabcentral/fileexchange/38977.
 %
 %   H = DENSITYALT(RHO,Param1,Val1,Param2,Val2,...)
@@ -118,7 +117,7 @@ i.outputUnits = validatestring(i.outputUnits,...
     {'SI','m','meters','US','ft','feet'},fName,'outputUnits');
 
 i.atmosphereFuntion = validatestring(i.atmosphereFunction,...
-    {'atmos','stdatmo','tropos','atmosisa','atmoscoesa','atmosnonstd'},...
+    {'atmos','tropos','atmosisa','atmoscoesa','atmosnonstd'},...
     fName,'atmosphereFunction');
 
 
@@ -138,7 +137,7 @@ end
 % returns density (in kg/m^3) as the first and only output.
 function rho = myAtmo(h)
     switch i.atmosphereFunction
-        case {'stdatmo' 'atmos' 'tropos'}
+        case {'atmos' 'tropos'}
             rho = feval(i.atmosphereFunction,h,i.atmosphereArgs{:});
         otherwise
             % Other functions return density as the fourth output.
