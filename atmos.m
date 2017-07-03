@@ -15,6 +15,9 @@ function varargout = atmos(h_in,varargin)
 %                    offset. Note that this is an offset, so when converting
 %                    between Celsius and Fahrenheit, use only the scaling factor
 %                    (dC/dF = dK/dR = 5/9).
+%     tAbsolute    - Similar to tOffest, but an absolute air temperature is 
+%                    provided (°K or °R) instead of an offset from the standard 
+%                    temperature. Supersedes tOffset if both are provided.
 %     altType      - Specify type of input altitude, either 'geopotential' (h)
 %                    or 'geometric' (z). Default altType = 'geopotential'.
 %     structOutput - When set, ATMOS produces a single struct output with fields
@@ -102,6 +105,8 @@ validateattributes(h_in,{'DimVar' 'numeric'},{'finite' 'real'});
 p = inputParser;
 addParameter(p,'tOffset',0,@(x)validateattributes(x,{'DimVar','numeric'},...
     {'finite' 'real'}));
+addParameter(p,'tAbsolute',[],@(x)validateattributes(x,{'DimVar','numeric'},...
+    {'finite' 'real' 'positive'}));
 addParameter(p,'units',defaultUnits);
 addParameter(p,'altType','geopotential');
 addParameter(p,'structOutput',defaultStructOutput,...
@@ -109,8 +114,8 @@ addParameter(p,'structOutput',defaultStructOutput,...
 parse(p,varargin{:});
 
 
-
 tOffset = p.Results.tOffset; 
+tAbsolute = p.Results.tAbsolute;
 
 convertUnits = strcmpi('US',validatestring(p.Results.units,...
     {'US' 'SI'},'atmos','units'));
@@ -133,14 +138,14 @@ if isa(tOffset,'DimVar')
     tOffset = tOffset/u.K;
     % It is allowed to mix DimVar h_in and double tOffset (or reverse). 
 end
+if isa(tAbsolute,'DimVar')
+    tAbsolute = tAbsolute/u.K;
+end
 
 if convertUnits
     h_in = h_in * 0.3048;
-    tOffset = tOffset * 5/9;
-end
-
-if isempty(tOffset)
-    tOffset = 0;
+    tOffset   = tOffset   * 5/9;
+    tAbsolute = tAbsolute * 5/9;
 end
 
 
@@ -148,13 +153,13 @@ end
 
 %  Lapse rate Base Temp       Base Geop. Alt   Base Pressure
 %   Ki (°C/m) Ti (°K)         Hi (m)           P (Pa)
-D =[-.0065    288.15          0                101325            % Troposphere
+D =[-0.0065   288.15          0                101325            % Troposphere
     0         216.65          11000            22632.0400950078  % Tropopause
-    .001      216.65          20000            5474.87742428105  % Stratosphere1
-    .0028     228.65          32000            868.015776620216  % Stratosphere2
+    0.001     216.65          20000            5474.87742428105  % Stratosphere1
+    0.0028    228.65          32000            868.015776620216  % Stratosphere2
     0         270.65          47000            110.90577336731   % Stratopause
-    -.0028    270.65          51000            66.9385281211797  % Mesosphere1
-    -.002     214.65          71000            3.9563921603966   % Mesosphere2
+    -0.0028   270.65          51000            66.9385281211797  % Mesosphere1
+    -0.002    214.65          71000            3.9563921603966   % Mesosphere2
     0         186.94590831019 84852.0458449057 .373377173762337];% Mesopause
 
 % Constants:
@@ -206,7 +211,13 @@ for i = 1:nSpheres
     end
 end
 
-temp = temp + tOffset;
+%% Switch between using standard temp and provided absolute temp.
+if isempty(tAbsolute)
+    % No absolute temperature provided - use tOffset.
+    temp = temp + tOffset;
+else
+    temp = tAbsolute;
+end
 
 %% Populate the rest of the parameters:
 rho = press./temp/R;
@@ -250,10 +261,3 @@ if structOutput
 end
 
 end
-
-% Revision history:
-%{
-V1.0    2015-11-10 created from stdatmo, different input and cleaner analysis
-scheme that leave open future improvements such as covering different atmosphere
-models by having various tables D.
-%}
