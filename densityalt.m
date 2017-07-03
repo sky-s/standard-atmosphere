@@ -173,38 +173,3 @@ end
 % Otherwise, output h is already in meters.
 
 end
-
-%% Test script
-%{
-densityalt(1.225/2)
-densityalt(1.225/2,'spacing',1000)
-densityalt(1.225/2,'outputUnits','us')
-densityalt(.002377/2,'outputUnits','us','inputUnits','us')
-densityalt(1.3,'method','pchip')
-densityalt(1.3,'method','fzero','hMin',-5000)
-densityalt(1.3,'method','linear','hMin',-5000)
-densityalt(1.225,'atmosphereArgs',{-20}) % Cold day.
-densityalt(1e-4,'method','fzero')
-options = optimset('TolX',1e-9); % Bigger interval for fzero.
-densityalt(1.225/2,'method','bisection','options',options)
-densityalt(1.225/2,'method','bisection','options',1e-6) % Nearest µm.
-densityalt(1.225/2,'method','fzero')
-densityalt(1.225/2,'method','fzero','options',options)
-densityalt([1 .5 .25],'method','bisection')
-densityalt(magic(3)/9,'method','linear')
-densityalt(u.kg/u.m^3*magic(3)/9,'method','bisection')
-densityalt(1,'atmosphereFunction','atmosisa')
-%}
-
-% Revision history:
-%{
-2012-12-05 first version uploaded to FEX.
-2013-04-07
-    added try catch block with error link
-    added method as input
-2013-10-24 super-minor clean-up; added simple example; uploaded to FEX
-2015-10-06 added dT support.
-2015-10-15 huge rev: new input scheme and solution scheme using inputparser. New
-documentation and example.
-2016-01-13 default atmosphere model changed to atmos, added tropos option.
-%}
