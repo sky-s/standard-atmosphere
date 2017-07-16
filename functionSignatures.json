@@ -1,0 +1,57 @@
+{
+"atmos":
+{
+	"inputs":
+	[
+		{"mutuallyExclusiveGroup":
+			[
+				{"name":"altitude", "kind":"required", "type":[["DimVar"]]},
+				[
+					{"name":"altitude", "kind":"required", "type":[["numeric"]]},
+					{"name":"units", "kind":"namevalue", "type":"choices={'SI','US'}"}
+				]
+			]
+		},
+		{"mutuallyExclusiveGroup":
+			[
+				{"name":"tOffset", "kind":"namevalue", "type":[["numeric"], ["DimVar"]]},
+				{"name":"tAbsolute", "kind":"namevalue", "type":[["numeric"], ["DimVar"]]}
+			]
+		},
+		{"name":"altType", "kind":"namevalue", "type":"choices={'geopotential','geometric'}"},
+		{"name":"structOutput", "kind":"namevalue", "type":[["numeric"], ["logical"]]}
+	]
+},
+"densityalt":
+{
+	"inputs":
+	[
+		{"mutuallyExclusiveGroup":
+			[
+				{"name":"rho", "kind":"required", "type":[["DimVar"]]},
+				[
+					{"name":"rho", "kind":"required", "type":[["numeric"]]},
+					{"name":"inputUnits", "kind":"namevalue", "type":"choices={'SI','kg/m3','kg/m^3','US','slug/ft3','slug/ft^3'}"},
+					{"name":"outputUnits", "kind":"namevalue", "type":"choices={'SI','m','meters','US','ft','feet'}"}
+				]
+			]
+		},
+		{"name":"atmosphereFunc", "kind":"namevalue", "type":"choices={'atmos','tropos','atmosisa','atmoscoesa','atmosnonstd'}"},
+		{"name":"atmosphereArgs", "kind":"namevalue", "type":[["cell"]]},
+		{"mutuallyExclusiveGroup":
+			[
+				[
+					{"name":"method", "kind":"namevalue", "type":"choices={'fzero','bisection'}"},
+					{"name":"options", "kind":"namevalue", "type":[["numeric"], ["cell"], ["struct"]]},
+					{"name":"hMin", "kind":"namevalue", "type":[["numeric"]]},
+					{"name":"hMax", "kind":"namevalue", "type":[["numeric"]]}
+				],
+				[
+					{"name":"method", "kind":"namevalue", "type":"choices={'linear','spline','pchip','v5cubic'}"},
+					{"name":"spacing", "kind":"namevalue", "type":[["numeric"]]}
+				]
+			]
+		}
+	]
+}
+}

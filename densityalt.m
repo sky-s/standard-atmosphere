@@ -18,7 +18,7 @@ function h = densityalt(rho,varargin)
 %     method         - Method used for either searching for or interpolating a
 %                      solution (the equations that define the standard 
 %                      atmosphere cannot be inverted in terms of density).
-%                      Search: [ fzero | bisection] (fzero only for scalar case)
+%                      Search: [fzero | bisection] (fzero only for scalar case)
 %                      Interpolate: any method accepted by interp1.
 %                      Default method is 'pchip' for interpolation.
 %     options        - Options used for fzero or bisection methods.
