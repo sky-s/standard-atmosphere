@@ -1,4 +1,4 @@
-function varargout = atmos(h_in,varargin)
+function varargout = atmos(h,varargin)
 %  ATMOS  Find gas properties in the 1976 Standard Atmosphere.
 %   [rho,a,T,P,nu,z] = ATMOS(h,varargin)
 %
@@ -97,10 +97,10 @@ defaultStructOutput = false;
 
 %% Parse inputs:
 if nargin == 0
-    h_in = 0;
+    h = 0;
 end
 
-validateattributes(h_in,{'DimVar' 'numeric'},{'finite' 'real'});
+validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
 
 p = inputParser;
 addParameter(p,'tOffset',0,@(x)validateattributes(x,{'DimVar','numeric'},...
@@ -129,8 +129,8 @@ structOutput = p.Results.structOutput;
 
 %% Deal with different input types:
 dimVarOut = false;
-if isa(h_in,'DimVar')
-    h_in = h_in/u.m;
+if isa(h,'DimVar')
+    h = h/u.m;
     dimVarOut = true;
     convertUnits = false; % Trumps specified units.
 end
@@ -143,7 +143,7 @@ if isa(tAbsolute,'DimVar')
 end
 
 if convertUnits
-    h_in = h_in * 0.3048;
+    h = h * 0.3048;
     tOffset   = tOffset   * 5/9;
     tAbsolute = tAbsolute * 5/9;
 end
@@ -179,14 +179,14 @@ P = D(:,4);	%Pa
 
 %% Convert from geometric altitude to geopotental altitude, if necessary.
 if geomFlag
-    hGeop = (RE*h_in) ./ (RE + h_in);
+    hGeop = (RE*h) ./ (RE + h);
 else
-    hGeop = h_in;
+    hGeop = h;
 end
 
 %% Calculate temperature and pressure:
 % Pre-allocate.
-temp = zeros(size(h_in));
+temp = zeros(size(h));
 press = temp;
 
 nSpheres = size(D,1);
