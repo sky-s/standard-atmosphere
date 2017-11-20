@@ -99,6 +99,31 @@ defaultStructOutput = false;
 if nargin == 0
     h = 0;
 end
+if nargin <= 1 && ~nnz(h)
+    % Quick return of sea level conditions.
+    rho = 1.2250000;
+    a = 340.293988026089;
+    temp = 288.15;
+    press = 101325;
+    kvisc = 1.46071857273722e-05;
+    ZorH = 0;
+    if isa(h,'DimVar')
+        rho = rho*u.kg/(u.m^3);
+        if nargout == 1
+            varargout = {rho};
+            return
+        end
+        a = a*u.m/u.s;
+        temp = temp*u.K;
+        press = press*u.Pa;
+        kvisc = kvisc*u.m^2/u.s;
+        ZorH = ZorH*u.m;
+    end
+
+    varargout = {rho,a,temp,press,kvisc,ZorH};
+    return
+end
+    
 
 validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
 
