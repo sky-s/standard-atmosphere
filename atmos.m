@@ -124,31 +124,36 @@ if nargin <= 1 && ~nnz(h)
     return
 end
     
-
-validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
+% validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
 
 p = inputParser;
-addParameter(p,'tOffset',0,@(x)validateattributes(x,{'DimVar','numeric'},...
-    {'finite' 'real'}));
-addParameter(p,'tAbsolute',[],@(x)validateattributes(x,{'DimVar','numeric'},...
-    {'finite' 'real' 'positive'}));
+addParameter(p,'tOffset',0);
+addParameter(p,'tAbsolute',[]);
 addParameter(p,'units',defaultUnits);
 addParameter(p,'altType','geopotential');
-addParameter(p,'structOutput',defaultStructOutput,...
-    @(x)validateattributes(x,{'numeric','logical'},{'scalar'}));
+addParameter(p,'structOutput',defaultStructOutput);
 parse(p,varargin{:});
-
 
 tOffset = p.Results.tOffset; 
 tAbsolute = p.Results.tAbsolute;
 
-convertUnits = strcmpi('US',validatestring(p.Results.units,...
-    {'US' 'SI'},'atmos','units'));
+if strcmpi(p.Results.units,'SI')
+    convertUnits = false;
+elseif strcmpi(p.Results.units,'US')
+    convertUnits = true;
     % Flag if I need to convert to/from SI.
+else
+    error('Invalid units. Expected: ''SI'' or ''US''.')
+end    
 
-geomFlag = strcmpi('geometric',validatestring(p.Results.altType,...
-    {'geopotential' 'geometric'},'atmos','altType')); 
+if strcmpi(p.Results.altType,'geopotential')
+    geomFlag = false;
+elseif strcmpi(p.Results.altType,'geometric')
+    geomFlag = true;
     % Flag specifying z provided as input.
+else
+    error('Invalid altType. Expected: ''geopotential'' or ''geometric''.')
+end
 
 structOutput = p.Results.structOutput;
 
