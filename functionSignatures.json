@@ -28,9 +28,6 @@
 				]
 			]
 		}
-		// Due to mutuallyExclusiveGroups, these need to be inside a group.  namevalues can't span both inside/outside groups.
-		//{"name":"altType", "kind":"namevalue", "type":"choices={'geopotential','geometric'}"},
-		//{"name":"structOutput", "kind":"namevalue", "type":[["numeric"], ["logical"]]}
 	]
 },
 "densityalt":
@@ -67,9 +64,6 @@
 				]
 			]
 		}
-		// Due to mutuallyExclusiveGroups, these need to be inside a group.  namevalues can't span both inside/outside groups.
-		//{"name":"atmosphereFunc", "kind":"namevalue", "type":"choices={'atmos','tropos','atmosisa','atmoscoesa','atmosnonstd'}"},
-		//{"name":"atmosphereArgs", "kind":"namevalue", "type":[["cell"]]}
 	]
 }
 }
