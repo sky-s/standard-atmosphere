@@ -1,6 +1,6 @@
 function varargout = atmos(h,varargin)
 %  ATMOS  Find gas properties in the 1976 Standard Atmosphere.
-%   [rho,a,T,P,nu,z] = ATMOS(h,varargin)
+%   [rho,a,T,P,nu,z,sigma] = ATMOS(h,varargin)
 %
 %   ATMOS by itself gives atmospheric properties at sea level on a standard day.
 %
@@ -38,6 +38,7 @@ function varargout = atmos(h,varargin)
 %                       P         Pressure             Pa            lbf/ft^2
 %                       nu        Kinem. viscosity     m^2/s         ft^2/s
 %                       z | h     Height or altitude   m             ft
+%                       sigma     Density ratio        -             -
 %
 %   ATMOS returns properties the same size as h and/or tOffset (P does not vary
 %   with temperature offset and is always the size of h).
@@ -46,19 +47,19 @@ function varargout = atmos(h,varargin)
 %   for an off-standard atmosphere with temperature offset varying +/- 25°C
 %   sinusoidally with a period of 4 km.
 %       z = 0:100:86000;
-%       [rho,a,T,P,nu,h] = atmos(z,'tOffset',25*sin(pi*z/2000),...
-%                                  'altType','geometric');
-%       semilogx(rho/atmos,h/1000)
+%       [rho,a,T,P,nu,h,sigma] = atmos(z,'tOffset',25*sin(pi*z/2000),...
+%                                        'altType','geometric');
+%       semilogx(sigma,h/1000)
 %       title('Density variation with sinusoidal off-standard atmosphere')
-%       xlabel('\sigma'); ylabel('Geopotential altitude (km)')
+%       xlabel('Density ratio, \sigma'); ylabel('Geopotential altitude (km)')
 %
 %   Example 2: Create tables of atmospheric properties up to 30,000 ft for a
 %   cold (-20°C), standard, and hot (+20°C) day with columns
 %   [h(ft) z(ft) rho(slug/ft³) sigma a(ft/s) T(R) P(psf) µ(slug/ft-s) nu(ft²/s)]
 %   leveraging n-dimensional array capability.
 %       [~,h,dT] = meshgrid(0,-5000:1000:30000,[-20 0 20]);
-%       [rho,a,T,P,nu,z] = atmos(h,'tOffset',dT*9/5,'units','US');
-%       t = [h z rho rho/atmos(0,'units','US') a T P nu.*rho nu];
+%       [rho,a,T,P,nu,z,sigma] = atmos(h,'tOffset',dT*9/5,'units','US');
+%       t = [h z rho sigma a T P nu.*rho nu];
 %       format short e
 %       varNames = {'h' 'z' 'rho' 'sigma' 'a' 'T' 'P' 'mu' 'nu'};
 %       ColdTable       = array2table(t(:,:,1),'VariableNames',varNames)
@@ -84,13 +85,14 @@ function varargout = atmos(h,varargin)
 %     DENSITYALT - http://www.mathworks.com/matlabcentral/fileexchange/39325,
 %     UNITS      - http://www.mathworks.com/matlabcentral/fileexchange/38977.
 %
-%   [rho,a,T,P,nu,z] = ATMOS(h,varargin)
+%   [rho,a,T,P,nu,z,sigma] = ATMOS(h,varargin)
 
 %   Copyright 2015 Sky Sartorius
 %   www.mathworks.com/matlabcentral/fileexchange/authors/101715
 % 
-%   References: ESDU 77022;  www.pdas.com/atmos.html
+%   References: ESDU 77022; www.pdas.com/atmos.html
 
+%% User-customizable defaults:
 defaultUnits = 'SI'; % Alternate: 'US'
 
 defaultStructOutput = false;
@@ -101,11 +103,11 @@ if nargin == 0
 end
 if nargin <= 1 && ~nnz(h)
     % Quick return of sea level conditions.
-    rho = 1.2250000;
-    a = 340.293988026089;
+    rho = 1.225;
+    a = 340.2940;
     temp = 288.15;
     press = 101325;
-    kvisc = 1.46071857273722e-05;
+    kvisc = 1.4607186e-05;
     ZorH = 0;
     if isa(h,'DimVar')
         rho = rho*u.kg/(u.m^3);
@@ -120,7 +122,7 @@ if nargin <= 1 && ~nnz(h)
         ZorH = ZorH*u.m;
     end
 
-    varargout = {rho,a,temp,press,kvisc,ZorH};
+    varargout = {rho,a,temp,press,kvisc,ZorH,1};
     return
 end
     
@@ -181,20 +183,19 @@ end
 
 %% Constants, etc.:
 
-%  Lapse rate Base Temp       Base Geop. Alt   Base Pressure
-%   Ki (°C/m) Ti (°K)         Hi (m)           P (Pa)
-D =[-0.0065   288.15          0                101325            % Troposphere
-    0         216.65          11000            22632.0400950078  % Tropopause
-    0.001     216.65          20000            5474.87742428105  % Stratosphere1
-    0.0028    228.65          32000            868.015776620216  % Stratosphere2
-    0         270.65          47000            110.90577336731   % Stratopause
-    -0.0028   270.65          51000            66.9385281211797  % Mesosphere1
-    -0.002    214.65          71000            3.9563921603966   % Mesosphere2
-    0         186.94590831019 84852.0458449057 .373377173762337];% Mesopause
+%  Lapse rate Base Temp       Base Geop. Alt    Base Pressure
+%   Ki (°C/m) Ti (°K)         Hi (m)            P (Pa)
+D =[-0.0065   288.15          0                 101325            % Troposphere
+    0         216.65          11000             22632.04059693474 % Tropopause
+    0.001     216.65          20000             5474.877660660026 % Stratosph. 1
+    0.0028    228.65          32000             868.0158377493657 % Stratosph. 2
+    0         270.65          47000             110.9057845539146 % Stratopause
+    -0.0028   270.65          51000             66.938535373039073% Mesosphere 1
+    -0.002    214.65          71000             3.956392754582863 % Mesosphere 2
+    0         186.94590831019 84852.04584490575 .373377242877530];% Mesopause
 
 % Constants:
-R = 287.05287;	%N-m/kg-K; value from ESDU 77022
-% R = 287.0531; %N-m/kg-K; value used by MATLAB aerospace toolbox ATMOSISA
+rho0 = 1.225;   % Sea level density, kg/m^3
 gamma = 1.4;
 g0 = 9.80665;   %m/sec^2
 RE = 6356766;   %Radius of the Earth, m
@@ -205,6 +206,11 @@ K = D(:,1);	%°K/m
 T = D(:,2);	%°K
 H = D(:,3);	%m
 P = D(:,4);	%Pa
+
+R = P(1)/T(1)/rho0; %N-m/kg-K
+% Ref:
+%   287.05287 N-m/kg-K: value from ESDU 77022
+%   287.0531 N-m/kg-K:  value used by MATLAB aerospace toolbox ATMOSISA
 
 
 %% Convert from geometric altitude to geopotental altitude, if necessary.
@@ -251,6 +257,7 @@ end
 
 %% Populate the rest of the parameters:
 rho = press./temp/R;
+sigma = rho/rho0;
 
 a = sqrt(gamma * R * temp);
 kvisc = (Bs * temp.^1.5 ./ (temp + S)) ./ rho; %m2/s
@@ -277,7 +284,7 @@ elseif convertUnits
     ZorH = ZorH / 0.3048;
 end
 
-varargout = {rho,a,temp,press,kvisc,ZorH};
+varargout = {rho,a,temp,press,kvisc,ZorH,sigma};
 
 if structOutput
     if geomFlag
@@ -285,7 +292,7 @@ if structOutput
     else
         ZorHname = 'z';
     end
-    names = {'rho' 'a' 'T' 'P' 'nu' ZorHname};
+    names = {'rho' 'a' 'T' 'P' 'nu' ZorHname 'sigma'};
     varargout = {cell2struct(varargout,names,2)};
 
 end
