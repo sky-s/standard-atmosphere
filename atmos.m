@@ -103,10 +103,10 @@ end
 if nargin <= 1 && ~nnz(h)
     % Quick return of sea level conditions.
     rho = 1.225;
-    a = 340.2940;
+    a = 340.29399054347107;
     temp = 288.15;
     press = 101325;
-    kvisc = 1.4607186e-05;
+    kvisc = 1.4607185943490473e-05;
     ZorH = 0;
     if isa(h,'DimVar')
         rho = rho*u.kg/(u.m^3);
