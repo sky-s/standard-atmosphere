@@ -81,9 +81,8 @@ function varargout = atmos(h,varargin)
 %   height (84852 m / 278386 ft geopotential) but will attempt to extrapolate
 %   above 86 km (with a lapse rate of 0°/km) and below 0.
 %
-%   See also ATMOSISA, ATMOSNONSTD, TROPOS,
-%     DENSITYALT - http://www.mathworks.com/matlabcentral/fileexchange/39325,
-%     UNITS      - http://www.mathworks.com/matlabcentral/fileexchange/38977.
+%   See also ATMOSISA, ATMOSNONSTD, TROPOS, DENSITYALT ,
+%     U - http://www.mathworks.com/matlabcentral/fileexchange/38977.
 %
 %   [rho,a,T,P,nu,z,sigma] = ATMOS(h,varargin)
 
