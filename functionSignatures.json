@@ -65,5 +65,22 @@
 			]
 		}
 	]
+},
+"pressurealt":
+{
+	"inputs":
+	[
+		{"mutuallyExclusiveGroup":
+			[
+				[
+					{"name":"pressure", "kind":"required", "type":[["DimVar"]]}
+				],
+				[
+					{"name":"pressure", "kind":"required", "type":[["numeric"]]},
+					{"name":"units", "kind":"ordered", "type":"choices={'SI','US'}"}
+				]
+			]
+		}
+	]
 }
 }
