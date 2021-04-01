@@ -103,10 +103,11 @@ end
 if nargin <= 1 && ~nnz(h)
     % Quick return of sea level conditions.
     rho = 1.225;
-    a = 340.2940;
+    a = sqrt(115800);
     temp = 288.15;
     press = 101325;
-    kvisc = 1.4607186e-05;
+    kvisc = (1.458e-6 * temp.^1.5 ./ 398.55) ./ rho;
+
     ZorH = 0;
     if isa(h,'DimVar')
         rho = rho*u.kg/(u.m^3);
@@ -124,7 +125,7 @@ if nargin <= 1 && ~nnz(h)
     varargout = {rho,a,temp,press,kvisc,ZorH,1};
     return
 end
-    
+
 % validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
 
 p = inputParser;
