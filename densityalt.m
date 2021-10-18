@@ -1,6 +1,6 @@
 function h = densityalt(rho,varargin)
 % DENSITYALT  Returns altitude corresponding to the given array of air densities
-%   in the standard or non-standard atmosphere.
+%   in a non-standard atmosphere. For standard atmosphere, use da.
 %
 %   H = DENSITYALT(RHO) returns altitude, h, as a function of air density, rho.
 % 
@@ -16,8 +16,7 @@ function h = densityalt(rho,varargin)
 %                      atmosphereFunction after the density input (e.g. for non-
 %                      standard atmospheres).
 %     method         - Method used for either searching for or interpolating a
-%                      solution (the equations that define the standard 
-%                      atmosphere cannot be inverted in terms of density).
+%                      solution.
 %                      Search: [fzero | bisection] (fzero only for scalar case)
 %                      Interpolate: any method accepted by interp1.
 %                      Default method is 'pchip' for interpolation.
@@ -48,15 +47,14 @@ function h = densityalt(rho,varargin)
 %       tempOffset = [-15 0 15]; % °C
 %       [rho, tempOffset] = meshgrid(rho,tempOffset);
 %       h = densityalt(rho,'method','bisection','outputUnits','ft',...
-%               'atmosphereArgs',{tempOffset},'hMin',-5000);
+%               'atmosphereArgs',{'tOffset',tempOffset},'hMin',-5000);
 %       plot(rho',h'/1000);
 %       xlabel('Air density (kg/m^3)'); ylabel('Altitude (kft)'); grid on
 %       legend('Cold','Standard','Hot')
 % 
-%   See also ATMOSISA, ATMOSNONSTD, ATMOSCOESA, INTERP1, FZERO, 
+%   See also ATMOS, DA, ATMOSISA, ATMOSNONSTD, ATMOSCOESA, INTERP1, FZERO, 
 %     BISECTION - http://www.mathworks.com/matlabcentral/fileexchange/28150,
-%     ATMOS     - http://www.mathworks.com/matlabcentral/fileexchange/28135,
-%     U, UNITS  - http://www.mathworks.com/matlabcentral/fileexchange/38977.
+%     U         - http://www.mathworks.com/matlabcentral/fileexchange/38977.
 %
 %   H = DENSITYALT(RHO,Param1,Val1,Param2,Val2,...)
 

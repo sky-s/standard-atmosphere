@@ -81,7 +81,7 @@ function varargout = atmos(h,varargin)
 %   height (84852 m / 278386 ft geopotential) but will attempt to extrapolate
 %   above 86 km (with a lapse rate of 0°/km) and below 0.
 %
-%   See also ATMOSISA, ATMOSNONSTD, TROPOS, DENSITYALT ,
+%   See also ATMOSISA, ATMOSNONSTD, TROPOS, DENSITYALT, DA,
 %     U - http://www.mathworks.com/matlabcentral/fileexchange/38977.
 %
 %   [rho,a,T,P,nu,z,sigma] = ATMOS(h,varargin)
@@ -192,7 +192,7 @@ D =[-0.0065   288.15          0                 101325            % Troposphere
     0         270.65          47000             110.9057845539146 % Stratopause
     -0.0028   270.65          51000             66.938535373039073% Mesosphere 1
     -0.002    214.65          71000             3.956392754582863 % Mesosphere 2
-    0         186.94590831019 84852.04584490575 .373377242877530];% Mesopause
+    0         186.94590831019 84852.04584490575 0.373377242877530];% Mesopause
 
 % Constants:
 rho0 = 1.225;   % Sea level density, kg/m^3
