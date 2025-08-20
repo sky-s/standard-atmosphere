@@ -91,13 +91,15 @@ for iSphere = 1:nSpheres
     else 
         n = rho >= RHO(iSphere+1) & rho < RHO(iSphere);
     end
-    
-    if K(iSphere) == 0 % Isothermal layer
-        h(n) = H(iSphere) - log(rho(n)/RHO(iSphere))*R*T(iSphere)/g0;
-    else % Gradient layer
-        TonTi = (rho(n)/RHO(iSphere)).^(-1./(1 + g0/(K(iSphere)*R)));
-        Temp = TonTi*T(iSphere);
-        h(n) = H(iSphere) + (Temp - T(iSphere)) / K(iSphere);
+
+    if nnz(n)
+        if K(iSphere) == 0 % Isothermal layer
+            h(n) = H(iSphere) - log(rho(n)/RHO(iSphere))*R*T(iSphere)/g0;
+        else % Gradient layer
+            TonTi = (rho(n)/RHO(iSphere)).^(-1./(1 + g0/(K(iSphere)*R)));
+            Temp = TonTi*T(iSphere);
+            h(n) = H(iSphere) + (Temp - T(iSphere)) / K(iSphere);
+        end
     end
 end
 

@@ -236,14 +236,15 @@ for i = 1:nSpheres
         n = hGeop <= H(i+1) & hGeop > H(i);
     end
     
-    
-    if K(i) == 0 % No temperature lapse.
-        temp(n) = T(i);
-        press(n) = P(i) * exp(-g0*(hGeop(n)-H(i))/(T(i)*R));
-    else
-        TonTi = 1 + K(i)*(hGeop(n) - H(i))/T(i);
-        temp(n) = TonTi*T(i); 
-        press(n) = P(i) * TonTi.^(-g0/(K(i)*R)); % Undefined for K = 0.
+    if nnz(n)
+        if K(i) == 0 % No temperature lapse.
+            temp(n) = T(i);
+            press(n) = P(i) * exp(-g0*(hGeop(n)-H(i))/(T(i)*R));
+        else
+            TonTi = 1 + K(i)*(hGeop(n) - H(i))/T(i);
+            temp(n) = TonTi*T(i);
+            press(n) = P(i) * TonTi.^(-g0/(K(i)*R)); % Undefined for K = 0.
+        end
     end
 end
 
