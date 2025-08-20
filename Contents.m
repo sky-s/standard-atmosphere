@@ -2,6 +2,7 @@
 % Version 2.3 .
 %
 %   atmos       - Gas properties for given altitude in the 1976 Standard Atmosphere.
+%   nsatmos     - Gas properties for given altitude in non-standard atmospheres.
 %   tropos      - Stripped-down version of atmos, applicable only to the troposphere.
 %   da          - Altitude in standard atmosphere for a given air density.
 %   densityalt  - Altitude in non-standard atmosphere for given air density.
