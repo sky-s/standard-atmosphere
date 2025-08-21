@@ -1,5 +1,5 @@
 function varargout = atmos(h,varargin)
-%  ATMOS  Find gas properties in the 1976 Standard Atmosphere.
+%  ATMOS  Find gas properties in standard and non-standard atmospheres.
 %   [rho,a,T,P,nu,z,sigma] = ATMOS(h,varargin)
 %
 %   ATMOS by itself gives atmospheric properties at sea level on a standard day.
@@ -9,6 +9,12 @@ function varargout = atmos(h,varargin)
 % 
 %   The input h can be followed by parameter/value pairs for further control of
 %   ATMOS. Possible parameters are:
+%     atmosphere   - Type of atmosphere model. Options:
+%                    'standard' (default) - 1976 Standard Atmosphere
+%                    'hot'      - Hot day atmosphere (SAE AS210)
+%                    'cold'     - Cold day atmosphere (SAE AS210)
+%                    'tropical' - Tropical atmosphere (SAE AS210)
+%                    'polar'    - Polar atmosphere (SAE AS210)
 %     tOffset      - Returns properties when the temperature is tOffset degrees 
 %                    above or below standand conditions. h and tOffset must be
 %                    the same size or else one must be a scalar. Default is no
@@ -16,7 +22,7 @@ function varargout = atmos(h,varargin)
 %                    between Celsius and Fahrenheit, use only the scaling factor
 %                    (dC/dF = dK/dR = 5/9).
 %     tAbsolute    - Similar to tOffest, but an absolute air temperature is 
-%                    provided (°K or °R) instead of an offset from the standard 
+%                    provided (ï¿½K or ï¿½R) instead of an offset from the standard 
 %                    temperature. Supersedes tOffset if both are provided.
 %     altType      - Specify type of input altitude, either 'geopotential' (h)
 %                    or 'geometric' (z). Default altType = 'geopotential'.
@@ -26,15 +32,15 @@ function varargout = atmos(h,varargin)
 %     units        - String for units of inputs and outpus, either 'SI'
 %                    (default) or 'US'. This is ignored if the provided input h
 %                    is a DimVar, in which case all outputs are also DimVars and
-%                    expected tOffset is either a DimVar or in °C/°K.
+%                    expected tOffset is either a DimVar or in ï¿½C/ï¿½K.
 %                                 Description:         SI:           US:
 %                     Input:      --------------       -----         -----
 %                       h | z     Altitude or height   m             ft
-%                       tOffset   Temp. offset         °C/°K         °F/°R
+%                       tOffset   Temp. offset         ï¿½C/ï¿½K         ï¿½F/ï¿½R
 %                     Output:     --------------       -----         -----
 %                       rho       Density              kg/m^3        slug/ft^3
 %                       a         Speed of sound       m/s           ft/s
-%                       T         Temperature          °K            °R
+%                       T         Temperature          ï¿½K            ï¿½R
 %                       P         Pressure             Pa            lbf/ft^2
 %                       nu        Kinem. viscosity     m^2/s         ft^2/s
 %                       z | h     Height or altitude   m             ft
@@ -43,8 +49,16 @@ function varargout = atmos(h,varargin)
 %   ATMOS returns properties the same size as h and/or tOffset (P does not vary
 %   with temperature offset and is always the size of h).
 %
-%   Example 1: Find atmospheric properties at every 100 m of geometric height
-%   for an off-standard atmosphere with temperature offset varying +/- 25°C
+%   Example 1: Compare standard and non-standard atmospheres at cruise altitude
+%       h = 10000; % 10 km altitude
+%       [rho_std,a_std,T_std] = atmos(h, 'atmosphere', 'standard');
+%       [rho_hot,a_hot,T_hot] = atmos(h, 'atmosphere', 'hot');
+%       [rho_cold,a_cold,T_cold] = atmos(h, 'atmosphere', 'cold');
+%       fprintf('At 10 km: Standard T=%.1f K, Hot T=%.1f K, Cold T=%.1f K\n', ...
+%               T_std, T_hot, T_cold);
+%
+%   Example 2: Find atmospheric properties at every 100 m of geometric height
+%   for an off-standard atmosphere with temperature offset varying +/- 25ï¿½C
 %   sinusoidally with a period of 4 km.
 %       z = 0:100:86000;
 %       [rho,a,T,P,nu,h,sigma] = atmos(z,'tOffset',25*sin(pi*z/2000),...
@@ -53,18 +67,15 @@ function varargout = atmos(h,varargin)
 %       title('Density variation with sinusoidal off-standard atmosphere')
 %       xlabel('Density ratio, \sigma'); ylabel('Geopotential altitude (km)')
 %
-%   Example 2: Create tables of atmospheric properties up to 30,000 ft for a
-%   cold (-20°C), standard, and hot (+20°C) day with columns
-%   [h(ft) z(ft) rho(slug/ft³) sigma a(ft/s) T(R) P(psf) µ(slug/ft-s) nu(ft²/s)]
-%   leveraging n-dimensional array capability.
-%       [~,h,dT] = meshgrid(0,-5000:1000:30000,[-20 0 20]);
-%       [rho,a,T,P,nu,z,sigma] = atmos(h,'tOffset',dT*9/5,'units','US');
-%       t = [h z rho sigma a T P nu.*rho nu];
-%       format short e
-%       varNames = {'h' 'z' 'rho' 'sigma' 'a' 'T' 'P' 'mu' 'nu'};
-%       ColdTable       = array2table(t(:,:,1),'VariableNames',varNames)
-%       StandardTable   = array2table(t(:,:,2),'VariableNames',varNames)
-%       HotTable        = array2table(t(:,:,3),'VariableNames',varNames)
+%   Example 3: Create tables of atmospheric properties up to 30,000 ft for
+%   cold, standard, and hot atmospheres using SAE AS210 models.
+%       h = (0:1000:30000)*0.3048; % Convert ft to m
+%       T_cold = atmos(h, 'atmosphere', 'cold', 'structOutput', true);
+%       T_std = atmos(h, 'atmosphere', 'standard', 'structOutput', true);
+%       T_hot = atmos(h, 'atmosphere', 'hot', 'structOutput', true);
+%       plot(T_cold.T, h/0.3048, T_std.T, h/0.3048, T_hot.T, h/0.3048);
+%       legend('Cold', 'Standard', 'Hot'); xlabel('Temperature (K)'); 
+%       ylabel('Altitude (ft)');
 %
 %   Example 3: Use the unit consistency enforced by the DimVar class to find the
 %   SI dynamic pressure, Mach number, Reynolds number, and stagnation
@@ -79,7 +90,7 @@ function varargout = atmos(h,varargin)
 %
 %   This model is not recommended for use at altitudes above 86 km geometric
 %   height (84852 m / 278386 ft geopotential) but will attempt to extrapolate
-%   above 86 km (with a lapse rate of 0°/km) and below 0.
+%   above 86 km (with a lapse rate of 0ï¿½/km) and below 0.
 %
 %   See also ATMOSISA, ATMOSNONSTD, TROPOS, DENSITYALT, DA,
 %     U - http://www.mathworks.com/matlabcentral/fileexchange/38977.
@@ -89,7 +100,10 @@ function varargout = atmos(h,varargin)
 %   Copyright 2015 Sky Sartorius
 %   www.mathworks.com/matlabcentral/fileexchange/authors/101715
 % 
-%   References: ESDU 77022; www.pdas.com/atmos.html
+%   References: 
+%     U.S. Standard Atmosphere, 1976
+%     SAE AS210 - Environmental Conditions for Aerospace
+%     ESDU 77022; www.pdas.com/atmos.html
 
 %% User-customizable defaults:
 defaultUnits = 'SI'; % Alternate: 'US'
@@ -129,6 +143,7 @@ end
 % validateattributes(h,{'DimVar' 'numeric'},{'finite' 'real'});
 
 p = inputParser;
+addParameter(p,'atmosphere','standard');
 addParameter(p,'tOffset',0);
 addParameter(p,'tAbsolute',[]);
 addParameter(p,'units',defaultUnits);
@@ -136,6 +151,7 @@ addParameter(p,'altType','geopotential');
 addParameter(p,'structOutput',defaultStructOutput);
 parse(p,varargin{:});
 
+atmosphere = p.Results.atmosphere;
 tOffset = p.Results.tOffset; 
 tAbsolute = p.Results.tAbsolute;
 
@@ -181,20 +197,76 @@ if convertUnits
 end
 
 
-%% Constants, etc.:
+%% Define atmospheric model based on SAE AS210 and 1976 Standard Atmosphere:
 
-%  Lapse rate Base Temp       Base Geop. Alt    Base Pressure
-%   Ki (°C/m) Ti (°K)         Hi (m)            P (Pa)
-D =[-0.0065   288.15          0                 101325            % Troposphere
-    0         216.65          11000             22632.04059693474 % Tropopause
-    0.001     216.65          20000             5474.877660660026 % Stratosph. 1
-    0.0028    228.65          32000             868.0158377493657 % Stratosph. 2
-    0         270.65          47000             110.9057845539146 % Stratopause
-    -0.0028   270.65          51000             66.938535373039073% Mesosphere 1
-    -0.002    214.65          71000             3.956392754582863 % Mesosphere 2
-    0         186.94590831019 84852.04584490575 0.373377242877530];% Mesopause
+% Select atmospheric model
+switch lower(atmosphere)
+    case 'standard'
+        % 1976 Standard Atmosphere
+        %  Lapse rate Base Temp       Base Geop. Alt    Base Pressure
+        %   Ki (Â°C/m) Ti (Â°K)         Hi (m)            P (Pa)
+        D =[-0.0065   288.15          0                 101325            % Troposphere
+            0         216.65          11000             22632.04059693474 % Tropopause
+            0.001     216.65          20000             5474.877660660026 % Stratosph. 1
+            0.0028    228.65          32000             868.0158377493657 % Stratosph. 2
+            0         270.65          47000             110.9057845539146 % Stratopause
+            -0.0028   270.65          51000             66.938535373039073% Mesosphere 1
+            -0.002    214.65          71000             3.956392754582863 % Mesosphere 2
+            0         186.94590831019 84852.04584490575 0.373377242877530];% Mesopause
+        
+    case 'hot'
+        % Hot day atmosphere - SAE AS210 Hot Day
+        % 40Â°C (313.15 K) at sea level, reduced lapse rate to 11 km
+        D =[-0.0056   313.15          0                 101325            % Troposphere
+            0         251.35          11000             22632.04059693474 % Tropopause  
+            0.001     251.35          20000             5474.877660660026 % Stratosph. 1
+            0.0028    263.35          32000             868.0158377493657 % Stratosph. 2
+            0         305.35          47000             110.9057845539146 % Stratopause
+            -0.0028   305.35          51000             66.938535373039073% Mesosphere 1
+            -0.002    249.35          71000             3.956392754582863 % Mesosphere 2
+            0         221.64590831019 84852.04584490575 0.373377242877530];% Mesopause
+        
+    case 'cold'
+        % Cold day atmosphere - SAE AS210 Cold Day  
+        % -40Â°C (233.15 K) at sea level, increased lapse rate to 11 km
+        D =[-0.0074   233.15          0                 101325            % Troposphere
+            0         151.75          11000             22632.04059693474 % Tropopause
+            0.001     151.75          20000             5474.877660660026 % Stratosph. 1
+            0.0028    163.75          32000             868.0158377493657 % Stratosph. 2
+            0         205.75          47000             110.9057845539146 % Stratopause
+            -0.0028   205.75          51000             66.938535373039073% Mesosphere 1
+            -0.002    149.75          71000             3.956392754582863 % Mesosphere 2
+            0         122.04590831019 84852.04584490575 0.373377242877530];% Mesopause
+        
+    case 'tropical'
+        % Tropical atmosphere - SAE AS210 Tropical
+        % 30Â°C (303.15 K) at sea level, modified lapse rates
+        D =[-0.0054   303.15          0                 101325            % Troposphere
+            0         244.05          17000             7934.753          % Tropopause (higher)
+            0.001     244.05          20000             5474.877660660026 % Stratosph. 1
+            0.0028    256.05          32000             868.0158377493657 % Stratosph. 2
+            0         298.05          47000             110.9057845539146 % Stratopause
+            -0.0028   298.05          51000             66.938535373039073% Mesosphere 1
+            -0.002    242.05          71000             3.956392754582863 % Mesosphere 2
+            0         214.34590831019 84852.04584490575 0.373377242877530];% Mesopause
+        
+    case 'polar'
+        % Polar atmosphere - SAE AS210 Polar Winter
+        % -46Â°C (227.15 K) at sea level, steeper lapse to lower tropopause
+        D =[-0.0080   227.15          0                 101325            % Troposphere
+            0         147.15          9000              30800.41          % Tropopause (lower)
+            0.001     147.15          20000             5474.877660660026 % Stratosph. 1
+            0.0028    159.15          32000             868.0158377493657 % Stratosph. 2
+            0         201.15          47000             110.9057845539146 % Stratopause
+            -0.0028   201.15          51000             66.938535373039073% Mesosphere 1
+            -0.002    145.15          71000             3.956392754582863 % Mesosphere 2
+            0         117.44590831019 84852.04584490575 0.373377242877530];% Mesopause
+        
+    otherwise
+        error('Invalid atmosphere type. Expected: ''standard'', ''hot'', ''cold'', ''tropical'', or ''polar''.')
+end
 
-% Constants:
+%% Constants:
 rho0 = 1.225;   % Sea level density, kg/m^3
 gamma = 1.4;
 g0 = 9.80665;   %m/sec^2
@@ -202,8 +274,8 @@ RE = 6356766;   %Radius of the Earth, m
 Bs = 1.458e-6;  %N-s/m2 K1/2
 S = 110.4;      %K
 
-K = D(:,1);	%°K/m
-T = D(:,2);	%°K
+K = D(:,1);	%Â°K/m
+T = D(:,2);	%ï¿½K
 H = D(:,3);	%m
 P = D(:,4);	%Pa
 
